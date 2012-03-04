@@ -34,14 +34,12 @@ def strip_val(str):
 
 # Print key/value pairs of a dictionary
 def print_stats(stats):
-  print "print called"
   for key, val in stats.items():
     print key + " : " + val
 
 
 # Initialise the RRD database
 def rrd_init():
-  print "init called"
   res = rrdtool.create(rrdfile, "--step", "300", "--start", '0',
       "DS:down_speed:GAUGE:600:U:U",
       "DS:up_speed:GAUGE:600:U:U",
@@ -64,7 +62,6 @@ def rrd_init():
 
 # Update the RRD database
 def rrd_update(stats):
-  print "update called"
   res = rrdtool.update(rrdfile,
                         'N:' + stats['down_speed'] + ':' + stats['up_speed']
                       + ':' + stats['down_atten'] + ':' + stats['up_atten']
@@ -76,8 +73,7 @@ def rrd_update(stats):
 
 # Generate fancy graphs out of the RRD database
 def rrd_generate():
-  print "generate called"
-  res = rrdtool.graph( "adsl-daily.png", "--start", "-1d", "--title=ADSL Sync Speed (Daily)", "--vertical-label=kilobytes/s",
+  res = rrdtool.graph( outdir + "/adsl-daily.png", "--start", "-1d", "--title=ADSL Sync Speed (Daily)", "--vertical-label=kilobytes/s",
       "DEF:down_speed=" + rrdfile + ":down_speed:AVERAGE",
       "DEF:up_speed=" + rrdfile + ":up_speed:AVERAGE",
       "LINE1:down_speed#00FF00:Downstream Sync Speed",
@@ -96,13 +92,12 @@ def rrd_generate():
 
 # Grab stats from the router and return it in the form of a dictionary
 def grab_stats():
-  print "grab called"
   # Probably could have used urllib here, but hey...
   res = commands.getstatusoutput('curl -s http://' + username + ':' + password + '@' + ip + '/stattbl.htm | sed -n 84,105p')
 
   soup = BeautifulSoup(res[1])
 
-  #  
+  # Voodoo!
   values = [ [ col.renderContents() for col in row.findAll('td') ] for row in soup.find('table').findAll('tr') ]
 
   return { 'down_speed' : strip_val(values[1][1]),
